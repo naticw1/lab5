@@ -1,0 +1,121 @@
+include "IntroSort.h"
+
+// insersion Sort
+void IntroSort::InsertionSort(std::vector<int>& numbers,int left , int size , vector<Animation> &animations) 
+{
+	
+	for (size_t i = left + 1; i < size; i++)
+	{
+		int j = i;
+		while (j > left && (numbers[j] < numbers[j - 1]))
+		{
+			animations.push_back(Animation(AnimationType::COMPARE, j, j - 1));
+			std::swap(numbers[j], numbers[j - 1]);
+			animations.push_back(Animation(AnimationType::SWAP, j, j - 1));
+			j -= 1;
+		}
+	}
+	
+
+}
+// Search for a pivot element for quick sorting
+int  IntroSort::Partition(std::vector<int>& numbers, int  low, int  high, std::vector<Animation>& animations) 
+{
+	int pivot = numbers[high];
+	int i = (low - 1);
+	for (int j = low; j <= high - 1; j++)
+	{
+		animations.push_back(Animation(AnimationType::COMPARE, j, high));
+		if (numbers[j] < pivot)
+		{
+			i++;
+			std::swap(numbers[i], numbers[j]);
+			animations.push_back(Animation(AnimationType::SWAP, i, j));
+		}
+	}
+	std::swap(numbers[i + 1], numbers[high]);
+	animations.push_back(Animation(AnimationType::SWAP, i + 1, high));
+	return (i + 1);
+}
+
+//making a heap for sorting a heap
+void IntroSort::MaxHeapify(std::vector<int>& numbers, int currentLength, int index, std::vector<Animation>& animations) 
+{
+	int largest = index;
+	int leftChild = 2 * index + 1;
+	int rightChild = 2 * index + 2;
+	if (leftChild < currentLength)
+	{
+		animations.push_back(Animation(AnimationType::COMPARE, leftChild, largest));
+		if (numbers[leftChild] > numbers[largest]) largest = leftChild;
+	}
+	if (rightChild < currentLength)
+	{
+		animations.push_back(Animation(AnimationType::COMPARE, rightChild, largest));
+		if (numbers[rightChild] > numbers[largest]) largest = rightChild;
+	}
+	if (largest != index)
+	{
+		std::swap(numbers[index], numbers[largest]);
+		animations.push_back(Animation(AnimationType::SWAP, index, largest));
+		MaxHeapify(numbers, currentLength, largest, animations);
+	}
+}
+// recursive heap sort
+
+void IntroSort::HeapSort(std::vector<int>& numbers ,int start , int size , vector < Animation>& animations) 
+{
+	
+	for (int i = size / 2 - 1; i >= start; i--)
+		MaxHeapify(numbers, size, i, animations);
+	for (int i = size - 1; i >= start; i--)
+	{
+		std::swap(numbers[start], numbers[i]);
+		animations.push_back(Animation(AnimationType::SWAP, start, i));
+		MaxHeapify(numbers, i, start, animations);
+	}
+	
+}
+
+// recursive Intro sort
+
+void IntroSort::IntroSortRec(vector<int>& numbers, int  low, int  high, int depthLimit, vector<Animation>& animations) 
+{
+	int size_loc = high - low;
+	if ((high - low) < 16) {
+		InsertionSort(numbers,low , high + 1 , animations);
+		
+	}
+	else if (depthLimit == 0) {
+		HeapSort(numbers, low, high + 1, animations);
+	}
+	else {
+		int pivot = Partition(numbers, low, high, animations);
+		IntroSortRec(numbers, low, pivot - 1, depthLimit - 1, animations);
+		IntroSortRec(numbers, pivot + 1, high, depthLimit - 1, animations);
+	}
+	
+	
+}
+
+//general Intro sort
+
+void IntroSort::IntroSortFinal(vector<int>& numbers, vector<Animation>& animations) {
+	int size = numbers.size();
+	//cout << size;
+	//int depthLimit = 2 * floor(log(size));
+	int depthLimit = 2 * log(numbers.size());
+	//cout << depthLimit << " " << 2 * log(numbers.size()) << endl;
+
+	IntroSortRec(numbers, 0, numbers.size() - 1, depthLimit, animations);
+}
+
+
+// Do not worry
+vector<Animation> IntroSort::SortNumbers(std::vector<int>& numbers) {
+	std::vector<Animation> animations;
+  
+	IntroSortFinal(numbers, animations);
+	
+	return animations;
+}
